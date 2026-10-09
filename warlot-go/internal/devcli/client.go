@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/steven3002/warlot-golang-sdk/warlot-go/warlot"
+	"github.com/warlot-lab/warlot-golang-sdk/warlot-go/warlot"
 )
 
 // NewClient constructs an SDK client using global flags.

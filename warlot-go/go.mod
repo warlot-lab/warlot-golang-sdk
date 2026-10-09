@@ -1,4 +1,4 @@
-module github.com/steven3002/warlot-golang-sdk/warlot-go
+module github.com/warlot-lab/warlot-golang-sdk/warlot-go
 
 go 1.26.0
 

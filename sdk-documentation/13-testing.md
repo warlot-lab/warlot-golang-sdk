@@ -270,7 +270,7 @@ jobs:
 ```txt
 --- PASS: TestE2E_Live (7.64s)
 PASS
-ok      github.com/steven3002/warlot-golang-sdk/warlot-go/e2e   7.656s
+ok      github.com/warlot-lab/warlot-golang-sdk/warlot-go/e2e   7.656s
 ```
 
 ### Unit Local Test
@@ -290,7 +290,7 @@ ok      github.com/steven3002/warlot-golang-sdk/warlot-go/e2e   7.656s
     === RUN   TestTables_Status_Commit_Pager
     --- PASS: TestTables_Status_Commit_Pager (0.00s)
     PASS
-    ok      github.com/steven3002/warlot-golang-sdk/warlot-go/warlot        0.295s
+    ok      github.com/warlot-lab/warlot-golang-sdk/warlot-go/warlot        0.295s
 ```
 
 ---

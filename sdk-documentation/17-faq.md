@@ -9,7 +9,7 @@ Concise answers to frequently asked questions regarding the Warlot Go SDK, organ
 ### How is the SDK added to a project?
 
 ```bash
-go get github.com/steven3002/warlot-golang-sdk/warlot-go@v1
+go get github.com/warlot-lab/warlot-golang-sdk/warlot-go@v1
 go mod tidy
 ```
 
@@ -19,9 +19,9 @@ Minimum recommended Go version: **1.21+**.
 
 ```bash
 # exact version
-go get github.com/steven3002/warlot-golang-sdk/warlot-go@v1.0.0
+go get github.com/warlot-lab/warlot-golang-sdk/warlot-go@v1.0.0
 # allow patch updates within 1.0
-go get github.com/steven3002/warlot-golang-sdk/warlot-go@v1.0
+go get github.com/warlot-lab/warlot-golang-sdk/warlot-go@v1.0
 ```
 
 ### How is a custom API base URL configured?

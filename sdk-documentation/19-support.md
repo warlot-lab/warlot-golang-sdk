@@ -8,8 +8,8 @@ Centralized guidance for obtaining assistance with the Warlot Go SDK. This page 
 
 | Channel                | Purpose                                       | Link                                                               |
 | ---------------------- | --------------------------------------------- | ------------------------------------------------------------------ |
-| **GitHub Issues**      | Bug reports, regressions, feature requests    | `github.com/steven3002/warlot-golang-sdk/warlot-go/issues`         |
-| **GitHub Discussions** | Usage questions, patterns, design feedback    | `github.com/steven3002/warlot-golang-sdk/warlot-go/discussions`    |
+| **GitHub Issues**      | Bug reports, regressions, feature requests    | `github.com/warlot-lab/warlot-golang-sdk/warlot-go/issues`         |
+| **GitHub Discussions** | Usage questions, patterns, design feedback    | `github.com/warlot-lab/warlot-golang-sdk/warlot-go/discussions`    |
 | **Security (private)** | Vulnerability reports, coordinated disclosure | GitHub **Security Advisories** for the repository (private report) |
 | **Operational status** | Quick API reachability check                  | Run the “Connectivity preflight” below                             |
 
@@ -35,7 +35,7 @@ These steps help isolate environmental problems:
 # 1) Go toolchain & module info
 go version
 go env GOPATH GOOS GOARCH
-go list -m github.com/steven3002/warlot-golang-sdk/warlot-go
+go list -m github.com/warlot-lab/warlot-golang-sdk/warlot-go
 
 # 2) Network reachability (exit code should be 0)
 curl -sS -I https://warlot-api.onrender.com || echo "unreachable"
@@ -51,7 +51,7 @@ import (
   "fmt"
   "time"
 
-  "github.com/steven3002/warlot-golang-sdk/warlot-go/warlot"
+  "github.com/warlot-lab/warlot-golang-sdk/warlot-go/warlot"
 )
 
 func main() {

@@ -4,8 +4,8 @@ import (
 	"flag"
 	"os"
 
-	"github.com/steven3002/warlot-golang-sdk/warlot-go/internal/devcli"
-	"github.com/steven3002/warlot-golang-sdk/warlot-go/internal/devcli/ui"
+	"github.com/warlot-lab/warlot-golang-sdk/warlot-go/internal/devcli"
+	"github.com/warlot-lab/warlot-golang-sdk/warlot-go/internal/devcli/ui"
 )
 
 // RunStatus retrieves and presents project status and replication SLIs.

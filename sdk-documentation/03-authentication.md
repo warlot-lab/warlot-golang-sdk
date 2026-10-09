@@ -45,7 +45,7 @@ flowchart TD
 ```go
 import (
 	"context"
-	"github.com/steven3002/warlot-golang-sdk/warlot-go/warlot"
+	"github.com/warlot-lab/warlot-golang-sdk/warlot-go/warlot"
 )
 
 func example(ctx context.Context) error {
@@ -219,7 +219,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/steven3002/warlot-golang-sdk/warlot-go/warlot"
+	"github.com/warlot-lab/warlot-golang-sdk/warlot-go/warlot"
 )
 
 func Test_IssueKey_And_SQL_Live(t *testing.T) {

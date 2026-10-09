@@ -6,7 +6,7 @@
 ### 1) Install the CLI from the published submodule tag
 
 ```bash
-go install github.com/steven3002/warlot-golang-sdk/warlot-go/cmd/warlotdev@v1.0.1
+go install github.com/warlot-lab/warlot-golang-sdk/warlot-go/cmd/warlotdev@v1.0.1
 ```
 
 ### 2) Ensure the binary is on PATH (current shell + future sessions)
@@ -106,7 +106,7 @@ warlotdev -v -base "$WARLOT_BASE_URL" -holder "$WARLOT_HOLDER" -pname "$WARLOT_P
 
 # Reinstall after a fresh release
 go clean -modcache
-go install github.com/steven3002/warlot-golang-sdk/warlot-go/cmd/warlotdev@v1.0.1
+go install github.com/warlot-lab/warlot-golang-sdk/warlot-go/cmd/warlotdev@v1.0.1
 ```
 
 ---
@@ -116,7 +116,7 @@ go install github.com/steven3002/warlot-golang-sdk/warlot-go/cmd/warlotdev@v1.0.
 ### 1) Install the CLI from the published submodule tag
 
 ```powershell
-go install github.com/steven3002/warlot-golang-sdk/warlot-go/cmd/warlotdev@v1.0.1
+go install github.com/warlot-lab/warlot-golang-sdk/warlot-go/cmd/warlotdev@v1.0.1
 ```
 
 ### 2) Ensure the binary is on PATH (persistent for User; current session updated)
@@ -220,7 +220,7 @@ warlotdev -v -base $env:WARLOT_BASE_URL -holder $env:WARLOT_HOLDER -pname $env:W
 
 # Reinstall after a fresh release
 go clean -modcache
-go install github.com/steven3002/warlot-golang-sdk/warlot-go/cmd/warlotdev@v1.0.1
+go install github.com/warlot-lab/warlot-golang-sdk/warlot-go/cmd/warlotdev@v1.0.1
 ```
 
 ---

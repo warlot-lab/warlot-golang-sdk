@@ -57,7 +57,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/steven3002/warlot-golang-sdk/warlot-go/warlot"
+	"github.com/warlot-lab/warlot-golang-sdk/warlot-go/warlot"
 )
 
 func newClient(holder, projectName string) *warlot.Client {
@@ -329,7 +329,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/steven3002/warlot-golang-sdk/warlot-go/warlot"
+	"github.com/warlot-lab/warlot-golang-sdk/warlot-go/warlot"
 )
 
 func Test_Quickstart_Live(t *testing.T) {

@@ -77,7 +77,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/steven3002/warlot-golang-sdk/warlot-go/warlot"
+	"github.com/warlot-lab/warlot-golang-sdk/warlot-go/warlot"
 	"myapp/data"
 )
 

@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/steven3002/warlot-golang-sdk/warlot-go/internal/devcli"
+	"github.com/warlot-lab/warlot-golang-sdk/warlot-go/internal/devcli"
 )
 
 func TestCommands_RunSQL_RejectsAPIKeyFlag(t *testing.T) {

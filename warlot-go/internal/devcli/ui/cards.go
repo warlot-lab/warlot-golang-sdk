@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/steven3002/warlot-golang-sdk/warlot-go/warlot"
+	"github.com/warlot-lab/warlot-golang-sdk/warlot-go/warlot"
 )
 
 // RenderStatusCard renders a structured SLI status card for a project.

@@ -20,19 +20,19 @@ Official Go SDK for the Warlot SQL Database API. This page covers prerequisites,
 
 ```bash
 # inside a Go module
-go get github.com/steven3002/warlot-golang-sdk/warlot-go/warlot@latest
+go get github.com/warlot-lab/warlot-golang-sdk/warlot-go/warlot@latest
 ```
 
 ### Pin to a specific version
 
 ```bash
-go get github.com/steven3002/warlot-golang-sdk/warlot-go/warlot@v0.1.0
+go get github.com/warlot-lab/warlot-golang-sdk/warlot-go/warlot@v0.1.0
 ```
 
 ### Update to latest compatible
 
 ```bash
-go get -u github.com/steven3002/warlot-golang-sdk/warlot-go/warlot
+go get -u github.com/warlot-lab/warlot-golang-sdk/warlot-go/warlot
 ```
 
 ---
@@ -40,7 +40,7 @@ go get -u github.com/steven3002/warlot-golang-sdk/warlot-go/warlot
 ## Import path and minimal construction
 
 ```go
-import "github.com/steven3002/warlot-golang-sdk/warlot-go/warlot"
+import "github.com/warlot-lab/warlot-golang-sdk/warlot-go/warlot"
 
 func initClient() *warlot.Client {
     return warlot.New(
@@ -76,7 +76,7 @@ The SDK and the CLI (`warlotctl`) honor these environment variables when present
 
 ```bash
 go env -w GOFLAGS=-mod=mod
-go list -m github.com/steven3002/warlot-golang-sdk/warlot-go/warlot
+go list -m github.com/warlot-lab/warlot-golang-sdk/warlot-go/warlot
 ```
 
 ### Unit tests (offline)

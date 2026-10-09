@@ -50,7 +50,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/steven3002/warlot-golang-sdk/warlot-go/warlot"
+	"github.com/warlot-lab/warlot-golang-sdk/warlot-go/warlot"
 )
 
 func streamProducts(ctx context.Context, cl *warlot.Client, projectID string) error {
@@ -96,7 +96,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/steven3002/warlot-golang-sdk/warlot-go/warlot"
+	"github.com/warlot-lab/warlot-golang-sdk/warlot-go/warlot"
 )
 
 func listRowsInPages(ctx context.Context, cl *warlot.Client, projectID, table string) error {

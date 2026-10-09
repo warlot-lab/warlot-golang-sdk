@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/steven3002/warlot-golang-sdk/warlot-go/warlot"
+	"github.com/warlot-lab/warlot-golang-sdk/warlot-go/warlot"
 )
 
 func TestCluster_LiveProbesAndProjections(t *testing.T) {

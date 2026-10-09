@@ -17,7 +17,7 @@ The SDK follows **SemVer**:
 **Go Modules:** for `v2+`, the module path includes the major suffix, for example:
 
 ```
-module github.com/steven3002/warlot-golang-sdk/warlot-go/v2
+module github.com/warlot-lab/warlot-golang-sdk/warlot-go/v2
 ```
 
 ### API Compatibility
@@ -52,9 +52,9 @@ If the API introduces a new major version, the SDK will add explicit support beh
 Pin the SDK at a known good range:
 
 ```bash
-go get github.com/steven3002/warlot-golang-sdk/warlot-go@v1.3.2
+go get github.com/warlot-lab/warlot-golang-sdk/warlot-go@v1.3.2
 # or allow patches only:
-go get github.com/steven3002/warlot-golang-sdk/warlot-go@v1.3
+go get github.com/warlot-lab/warlot-golang-sdk/warlot-go@v1.3
 ```
 
 Use `go mod tidy` after updates. For long-lived services, prefer controlled upgrades (patches first, then minors).
@@ -84,7 +84,7 @@ const UserAgentBase = "warlot-go"
 
 // DefaultUserAgent returns the UA used when no custom UA is provided.
 func DefaultUserAgent() string {
-	return UserAgentBase + "/" + Version + " (+https://github.com/steven3002/warlot-golang-sdk)"
+	return UserAgentBase + "/" + Version + " (+https://github.com/warlot-lab/warlot-golang-sdk)"
 }
 ```
 
@@ -132,8 +132,8 @@ All notable changes to this project are documented here. The SDK follows SemVer.
 ### Fixed
 - Flexible decoding for table count response.
 
-[1.0.0]: https://github.com/steven3002/warlot-golang-sdk/releases/tag/v1.0.0
-[0.2.0]: https://github.com/steven3002/warlot-golang-sdk/releases/tag/v0.2.0
+[1.0.0]: https://github.com/warlot-lab/warlot-golang-sdk/releases/tag/v1.0.0
+[0.2.0]: https://github.com/warlot-lab/warlot-golang-sdk/releases/tag/v0.2.0
 ```
 
 **Sections**
@@ -218,7 +218,7 @@ res, err := client.ExecSQL(ctx, "P", warlot.SQLRequest{SQL:"SELECT 1"})
 
 ```
 
-module github.com/steven3002/warlot-golang-sdk/warlot-go/v2
+module github.com/warlot-lab/warlot-golang-sdk/warlot-go/v2
 
 go 1.22
 

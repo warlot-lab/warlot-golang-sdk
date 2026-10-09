@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/steven3002/warlot-golang-sdk/warlot-go/internal/devcli"
-	"github.com/steven3002/warlot-golang-sdk/warlot-go/internal/devcli/ui"
+	"github.com/warlot-lab/warlot-golang-sdk/warlot-go/internal/devcli"
+	"github.com/warlot-lab/warlot-golang-sdk/warlot-go/internal/devcli/ui"
 )
 
 // RunTables dispatches to list|browse|schema|count subcommands.

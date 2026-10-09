@@ -89,7 +89,7 @@ func New(opts ...Option) *Client {
 				IdleConnTimeout:       90 * time.Second,
 			},
 		},
-		UserAgent:      "warlot-go/0.2 (+https://github.com/yourorg/warlot-go)",
+		UserAgent:      "warlot-go/0.2 (+https://github.com/warlot-lab/warlot-golang-sdk)",
 		MaxRetries:     3,
 		InitialBackoff: 300 * time.Millisecond,
 		MaxBackoff:     3 * time.Second,

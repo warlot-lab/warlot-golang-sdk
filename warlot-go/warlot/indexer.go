@@ -75,6 +75,24 @@ type ActiveProjectsRecord struct {
 	ActiveProjects int64  `json:"active_projects"`
 }
 
+// BlobLifespan serializes conservative blob expiry information.
+type BlobLifespan struct {
+	BlobObjID                 string    `json:"blob_obj_id"`
+	ConfigID                  string    `json:"config_id"`
+	SizeBytes                 int64     `json:"size_bytes"`
+	ConservativeEndEpoch      int64     `json:"conservative_end_epoch"`
+	ConservativeDaysRemaining float64   `json:"conservative_days_remaining"`
+	StoredAt                  time.Time `json:"stored_at"`
+	EpochSet                  int       `json:"epoch_set"`
+}
+
+// LifespanBand serializes the totals of one lifespan band of an address's live blobs.
+type LifespanBand struct {
+	UpperDays  *float64 `json:"upper_days"`
+	BlobCount  int64    `json:"blob_count"`
+	TotalBytes int64    `json:"total_bytes"`
+}
+
 // IndexerHealth describes the indexer service liveness and readiness state.
 type IndexerHealth struct {
 	Status string `json:"status"`
@@ -107,7 +125,11 @@ func (c *Client) Indexer(indexerBaseURL string) *IndexerClient {
 	if indexerBaseURL == "" {
 		indexerBaseURL = "https://indexer.warlot.stevenhert.xyz"
 	}
-	return NewIndexerClient(indexerBaseURL, c.HTTPClient)
+	var httpClient *http.Client
+	if c != nil {
+		httpClient = c.HTTPClient
+	}
+	return NewIndexerClient(indexerBaseURL, httpClient)
 }
 
 func (idx *IndexerClient) get(ctx context.Context, path string, out any) error {
@@ -209,6 +231,26 @@ func (idx *IndexerClient) GetHolderProjects(ctx context.Context, holderID string
 	return &env, nil
 }
 
+// GetAddressLifespan retrieves conservative blob expiry information for an address.
+func (idx *IndexerClient) GetAddressLifespan(ctx context.Context, address string) (*IndexerEnvelope[[]BlobLifespan], error) {
+	path := fmt.Sprintf("/v1/addresses/%s/lifespan", url.PathEscape(address))
+	var env IndexerEnvelope[[]BlobLifespan]
+	if err := idx.get(ctx, path, &env); err != nil {
+		return nil, err
+	}
+	return &env, nil
+}
+
+// GetAddressLifespanBands retrieves lifespan totals grouped by band for an address.
+func (idx *IndexerClient) GetAddressLifespanBands(ctx context.Context, address string) (*IndexerEnvelope[[]LifespanBand], error) {
+	path := fmt.Sprintf("/v1/addresses/%s/lifespan?group=band", url.PathEscape(address))
+	var env IndexerEnvelope[[]LifespanBand]
+	if err := idx.get(ctx, path, &env); err != nil {
+		return nil, err
+	}
+	return &env, nil
+}
+
 // CheckHealth queries the indexer /v1/health endpoint for projection sync checkpoint.
 func (idx *IndexerClient) CheckHealth(ctx context.Context) (*IndexerEnvelope[IndexerHealth], error) {
 	var env IndexerEnvelope[IndexerHealth]
@@ -216,6 +258,11 @@ func (idx *IndexerClient) CheckHealth(ctx context.Context) (*IndexerEnvelope[Ind
 		return nil, err
 	}
 	return &env, nil
+}
+
+// GetHealth is an alias for CheckHealth returning health and checkpoint freshness metadata.
+func (idx *IndexerClient) GetHealth(ctx context.Context) (*IndexerEnvelope[IndexerHealth], error) {
+	return idx.CheckHealth(ctx)
 }
 
 // CheckReadiness checks the indexer /readyz probe.
@@ -247,4 +294,9 @@ func (idx *IndexerClient) CheckReadiness(ctx context.Context) error {
 		return fmt.Errorf("indexer readiness returned status %d", res.StatusCode)
 	}
 	return nil
+}
+
+// GetReadiness is an alias for CheckReadiness.
+func (idx *IndexerClient) GetReadiness(ctx context.Context) error {
+	return idx.CheckReadiness(ctx)
 }

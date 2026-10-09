@@ -23,6 +23,9 @@ type APIError struct {
 }
 
 func (e *APIError) Error() string {
+	if e == nil {
+		return "<nil>"
+	}
 	msg := e.Message
 	if msg == "" {
 		msg = e.Body

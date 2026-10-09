@@ -19,6 +19,7 @@ func TestE2E_Live(t *testing.T) {
 	owner := mustEnv(t, "WARLOT_OWNER")
 	pname := mustEnv(t, "WARLOT_PNAME")
 	base := os.Getenv("WARLOT_BASE_URL") // optional override
+	apiKey := os.Getenv("WARLOT_API_KEY")
 
 	opts := []warlot.Option{
 		warlot.WithHolderID(holder),
@@ -30,6 +31,9 @@ func TestE2E_Live(t *testing.T) {
 	}
 	if base != "" {
 		opts = append(opts, warlot.WithBaseURL(base))
+	}
+	if apiKey != "" {
+		opts = append(opts, warlot.WithAPIKey(apiKey))
 	}
 	cl := warlot.New(opts...)
 	ctx := context.Background()
@@ -60,9 +64,8 @@ func TestE2E_Live(t *testing.T) {
 		}
 	}
 
-	// issue key
-	var apiKey string
-	{
+	// issue key if not already configured
+	if apiKey == "" {
 		sctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
 		defer cancel()
 		iss, err := cl.IssueAPIKey(sctx, warlot.IssueKeyRequest{
@@ -72,8 +75,8 @@ func TestE2E_Live(t *testing.T) {
 			t.Fatalf("IssueAPIKey failed: %v", err)
 		}
 		apiKey = iss.APIKey
+		cl.APIKey = apiKey
 	}
-	cl.APIKey = apiKey
 	proj := cl.Project(projectID)
 
 	// create table

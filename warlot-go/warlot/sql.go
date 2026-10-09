@@ -11,6 +11,9 @@ import (
 // ExecSQL executes a parameterized SQL statement within a project.
 // Both DDL/DML and SELECT responses are supported.
 func (c *Client) ExecSQL(ctx context.Context, projectID string, req SQLRequest, opts ...CallOption) (*SQLResponse, error) {
+	if c == nil {
+		return nil, ErrNilClient
+	}
 	path := fmt.Sprintf("/v1/projects/%s/sql", url.PathEscape(projectID))
 	var out SQLResponse
 	h := c.authHeaders()

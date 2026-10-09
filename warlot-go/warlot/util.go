@@ -12,6 +12,9 @@ import (
 // authHeaders builds the authentication headers from the Client configuration.
 func (c *Client) authHeaders() http.Header {
 	h := http.Header{}
+	if c == nil {
+		return h
+	}
 	if c.APIKey != "" {
 		h.Set("Authorization", "Bearer "+c.APIKey)
 	}

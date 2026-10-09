@@ -90,6 +90,9 @@ func (s *RowScanner) Close() error {
 // ExecSQLStream executes a SELECT and returns a RowScanner to iterate rows.
 // The caller must Close the scanner when finished.
 func (c *Client) ExecSQLStream(ctx context.Context, projectID string, req SQLRequest, opts ...CallOption) (*RowScanner, error) {
+	if c == nil {
+		return nil, ErrNilClient
+	}
 	path := fmt.Sprintf("/v1/projects/%s/sql", url.PathEscape(projectID))
 	h := c.authHeaders()
 	mergeHeaders(h, buildHeaders(nil, opts...))

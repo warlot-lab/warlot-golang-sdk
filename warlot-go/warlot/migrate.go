@@ -2,6 +2,7 @@ package warlot
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/fs"
 	"sort"
@@ -22,6 +23,12 @@ var migrate = Migrate
 // Up applies .sql files in fsys under dir, sorted by filename. Already-applied
 // migration IDs are skipped based on the _migrations ledger.
 func (Migrator) Up(ctx context.Context, p Project, fsys fs.FS, dir string) (applied []string, err error) {
+	if p.Client == nil {
+		return nil, ErrNilClient
+	}
+	if fsys == nil {
+		return nil, errors.New("warlot: fsys is nil")
+	}
 	// Ensure ledger exists.
 	if _, err = p.SQL(ctx, `
 		CREATE TABLE IF NOT EXISTS _migrations (

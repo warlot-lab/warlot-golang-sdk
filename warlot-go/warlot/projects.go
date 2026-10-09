@@ -9,6 +9,9 @@ import (
 
 // InitProject initializes a new project and returns its identifiers.
 func (c *Client) InitProject(ctx context.Context, req InitProjectRequest, opts ...CallOption) (*InitProjectResponse, error) {
+	if c == nil {
+		return nil, ErrNilClient
+	}
 	var out InitProjectResponse
 	h := c.authHeaders()
 	mergeHeaders(h, buildHeaders(nil, opts...))
@@ -20,6 +23,9 @@ func (c *Client) InitProject(ctx context.Context, req InitProjectRequest, opts .
 
 // IssueAPIKey creates an API key for a project, returning the key and URL.
 func (c *Client) IssueAPIKey(ctx context.Context, req IssueKeyRequest, opts ...CallOption) (*IssueKeyResponse, error) {
+	if c == nil {
+		return nil, ErrNilClient
+	}
 	var out IssueKeyResponse
 	h := c.authHeaders()
 	mergeHeaders(h, buildHeaders(nil, opts...))
@@ -32,6 +38,9 @@ func (c *Client) IssueAPIKey(ctx context.Context, req IssueKeyRequest, opts ...C
 // ResolveProject resolves a project by holder and name.
 // Legacy fields are normalized to the modern shape if necessary.
 func (c *Client) ResolveProject(ctx context.Context, req ResolveProjectRequest, opts ...CallOption) (*ResolveProjectResponse, error) {
+	if c == nil {
+		return nil, ErrNilClient
+	}
 	var out ResolveProjectResponse
 	h := c.authHeaders()
 	mergeHeaders(h, buildHeaders(nil, opts...))
@@ -49,6 +58,9 @@ func (c *Client) ResolveProject(ctx context.Context, req ResolveProjectRequest, 
 
 // DeactivateProject deactivates a project, refusing future writes while keeping reads available.
 func (c *Client) DeactivateProject(ctx context.Context, projectID string, opts ...CallOption) (*DeactivateProjectResponse, error) {
+	if c == nil {
+		return nil, ErrNilClient
+	}
 	path := fmt.Sprintf("/v1/projects/%s/deactivate", url.PathEscape(projectID))
 	var out DeactivateProjectResponse
 	h := c.authHeaders()
@@ -61,6 +73,9 @@ func (c *Client) DeactivateProject(ctx context.Context, projectID string, opts .
 
 // ReactivateProject reactivates a previously deactivated project, restoring write capabilities.
 func (c *Client) ReactivateProject(ctx context.Context, projectID string, opts ...CallOption) (*ReactivateProjectResponse, error) {
+	if c == nil {
+		return nil, ErrNilClient
+	}
 	path := fmt.Sprintf("/v1/projects/%s/reactivate", url.PathEscape(projectID))
 	var out ReactivateProjectResponse
 	h := c.authHeaders()
@@ -73,6 +88,9 @@ func (c *Client) ReactivateProject(ctx context.Context, projectID string, opts .
 
 // TerminateProject permanently terminates a project, shreds wrapped keys, and deletes on-chain state.
 func (c *Client) TerminateProject(ctx context.Context, projectID string, opts ...CallOption) (*TerminateProjectResponse, error) {
+	if c == nil {
+		return nil, ErrNilClient
+	}
 	path := fmt.Sprintf("/v1/projects/%s", url.PathEscape(projectID))
 	var out TerminateProjectResponse
 	h := c.authHeaders()

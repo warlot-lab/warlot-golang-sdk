@@ -13,7 +13,7 @@ import (
 // RunIndexer handles CLI queries for Warlot Indexer read projections.
 func RunIndexer(args []string) error {
 	if len(args) == 0 {
-		return devcli.FlagErrorf("run 'warlotdev indexer <health|storage|balances|history|holders|projects> [flags]'", "subcommand is required")
+		return devcli.FlagErrorf("run 'warlotdev indexer <health|storage|balances|history|holders|projects|lifespan> [flags]'", "subcommand is required")
 	}
 
 	sub := args[0]
@@ -163,7 +163,31 @@ func RunIndexer(args []string) error {
 		fmt.Fprintf(os.Stdout, "  %s  %d\n", painter.Muted("Active Projects:"), proj.Data.ActiveProjects)
 		return nil
 
+	case "lifespan":
+		if err := devcli.RequireFlag(*addr, "-address", "provide -address <0xAddress>"); err != nil {
+			return err
+		}
+		ls, err := idx.GetAddressLifespan(ctx, *addr)
+		if err != nil {
+			return err
+		}
+		if g.JSON {
+			devcli.PrintJSON(ls)
+			return nil
+		}
+		if len(ls.Data) == 0 {
+			fmt.Fprintln(os.Stdout, painter.Muted("(no live blobs found for address)"))
+			return nil
+		}
+		fmt.Fprintf(os.Stdout, "%s %s (%d blobs)\n\n", painter.Heading("Blob Lifespans:"), painter.Strong(*addr), len(ls.Data))
+		tbl := ui.NewTable(os.Stdout, painter)
+		tbl.SetHeaders("Blob Object ID", "Size (Bytes)", "End Epoch", "Days Remaining")
+		for _, b := range ls.Data {
+			tbl.AddRow(b.BlobObjID, fmt.Sprintf("%d", b.SizeBytes), fmt.Sprintf("%d", b.ConservativeEndEpoch), fmt.Sprintf("%.2f", b.ConservativeDaysRemaining))
+		}
+		return tbl.Flush()
+
 	default:
-		return devcli.FlagErrorf("valid subcommands are health, storage, balances, history, holders, projects", "unknown indexer subcommand %q", sub)
+		return devcli.FlagErrorf("valid subcommands are health, storage, balances, history, holders, projects, lifespan", "unknown indexer subcommand %q", sub)
 	}
 }

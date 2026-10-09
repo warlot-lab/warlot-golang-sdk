@@ -151,3 +151,28 @@ func BenchmarkQuery_NewBatch(b *testing.B) {
 		}
 	}
 }
+
+func queryDirectSinglePass[T any](body []byte) ([]T, error) {
+	var env struct {
+		Rows     []T    `json:"rows"`
+		RowCount *int   `json:"row_count"`
+		Error    string `json:"error"`
+	}
+	if err := json.Unmarshal(body, &env); err != nil {
+		return nil, err
+	}
+	return env.Rows, nil
+}
+
+func BenchmarkQuery_DirectSinglePass(b *testing.B) {
+	rows := generateBenchmarkRows(500)
+	rawJSON, _ := json.Marshal(map[string]any{"rows": rows, "row_count": len(rows)})
+	b.ResetTimer()
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		res, err := queryDirectSinglePass[complexUser](rawJSON)
+		if err != nil || len(res) != 500 {
+			b.Fatal(err)
+		}
+	}
+}

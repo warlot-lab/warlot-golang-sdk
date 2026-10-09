@@ -2,26 +2,24 @@ package commands
 
 import (
 	"flag"
+	"os"
 
 	"github.com/steven3002/warlot-golang-sdk/warlot-go/internal/devcli"
+	"github.com/steven3002/warlot-golang-sdk/warlot-go/internal/devcli/ui"
 )
 
-// RunStatus retrieves project status.
+// RunStatus retrieves and presents project status and replication SLIs.
 func RunStatus(args []string) error {
 	fs := flag.NewFlagSet("status", flag.ContinueOnError)
-	projectID := fs.String("project", "", "Project ID")
+	projectID := fs.String("project", "", "Project ID (required)")
 	g := devcli.ParseGlobalFlagsArgs(fs, args)
 
-	defer func() {
-		if r := recover(); r != nil {
-			devcli.Panicf("missing required flag: %v", r)
-		}
-	}()
-
-	devcli.MustNonEmpty(*projectID, "-project")
-	devcli.MustNonEmpty(g.HolderID, "-holder")
-	devcli.MustNonEmpty(g.ProjectName, "-pname")
-	devcli.MustNonEmpty(g.APIKey, "-apikey")
+	if err := devcli.RequireFlag(*projectID, "-project", "provide -project <id> to inspect status"); err != nil {
+		return err
+	}
+	if err := devcli.RequireFlag(g.APIKey, "-apikey", "provide -apikey or set WARLOT_API_KEY"); err != nil {
+		return err
+	}
 
 	cl := devcli.NewClient(g)
 	ctx, cancel := devcli.Ctx(g)
@@ -31,6 +29,15 @@ func RunStatus(args []string) error {
 	if err != nil {
 		return err
 	}
-	devcli.PrintJSON(out)
+
+	if g.JSON {
+		devcli.PrintJSON(out)
+		return nil
+	}
+
+	env := ui.DetectEnv("auto")
+	painter := ui.NewPainter(env.Color)
+	glyphs := ui.DefaultGlyphs(env.Unicode)
+	ui.RenderStatusCard(os.Stdout, painter, glyphs, out)
 	return nil
 }

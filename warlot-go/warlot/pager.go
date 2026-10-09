@@ -14,10 +14,14 @@ type Pager struct {
 
 // Next returns the next batch of rows, or nil when iteration finishes.
 func (p *Pager) Next(ctx context.Context) ([]map[string]any, error) {
-	if p.Done {
+	if p == nil || p.Done {
 		return nil, nil
 	}
-	resp, err := p.Project.Browse(ctx, p.Table, p.Limit, p.Offset)
+	limit := p.Limit
+	if limit <= 0 {
+		limit = 100
+	}
+	resp, err := p.Project.Browse(ctx, p.Table, limit, p.Offset)
 	if err != nil {
 		return nil, err
 	}

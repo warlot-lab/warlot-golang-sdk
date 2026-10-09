@@ -2,8 +2,11 @@ package commands
 
 import (
 	"flag"
+	"fmt"
+	"os"
 
 	"github.com/steven3002/warlot-golang-sdk/warlot-go/internal/devcli"
+	"github.com/steven3002/warlot-golang-sdk/warlot-go/internal/devcli/ui"
 	"github.com/steven3002/warlot-golang-sdk/warlot-go/warlot"
 )
 
@@ -12,14 +15,12 @@ func RunResolve(args []string) error {
 	fs := flag.NewFlagSet("resolve", flag.ContinueOnError)
 	g := devcli.ParseGlobalFlagsArgs(fs, args)
 
-	defer func() {
-		if r := recover(); r != nil {
-			devcli.Panicf("missing required flag: %v", r)
-		}
-	}()
-
-	devcli.MustNonEmpty(g.HolderID, "-holder")
-	devcli.MustNonEmpty(g.ProjectName, "-pname")
+	if err := devcli.RequireFlag(g.HolderID, "-holder", "provide -holder <id> or set WARLOT_HOLDER"); err != nil {
+		return err
+	}
+	if err := devcli.RequireFlag(g.ProjectName, "-pname", "provide -pname <name> or set WARLOT_PNAME"); err != nil {
+		return err
+	}
 
 	cl := devcli.NewClient(g)
 	ctx, cancel := devcli.Ctx(g)
@@ -32,6 +33,30 @@ func RunResolve(args []string) error {
 	if err != nil {
 		return err
 	}
-	devcli.PrintJSON(out)
+
+	if g.JSON {
+		devcli.PrintJSON(out)
+		return nil
+	}
+
+	env := ui.DetectEnv("auto")
+	painter := ui.NewPainter(env.Color)
+	glyphs := ui.DefaultGlyphs(env.Unicode)
+
+	fmt.Fprintf(os.Stdout, "%s Project Resolution:\n", painter.Heading("Status:"))
+	fmt.Fprintf(os.Stdout, "  %s  %s\n", painter.Muted("Project ID:   "), painter.Strong(out.ProjectID))
+	fmt.Fprintf(os.Stdout, "  %s  %s\n", painter.Muted("DB ID:        "), out.DBID)
+	fmt.Fprintf(os.Stdout, "  %s  %s\n", painter.Muted("Meta Exists:  "), formatBool(out.ExistsMeta, painter, glyphs))
+	fmt.Fprintf(os.Stdout, "  %s  %s\n", painter.Muted("Chain Exists: "), formatBool(out.ExistsChain, painter, glyphs))
+	if out.Action != "" {
+		fmt.Fprintf(os.Stdout, "  %s  %s\n", painter.Muted("Action:       "), painter.Hint(out.Action))
+	}
 	return nil
+}
+
+func formatBool(b bool, p ui.Painter, g ui.Glyphs) string {
+	if b {
+		return p.OK(fmt.Sprintf("%s yes", g.Check()))
+	}
+	return p.Muted(fmt.Sprintf("%s no", g.Cross()))
 }

@@ -17,18 +17,19 @@ import (
 type Logger func(event string, metadata map[string]any)
 
 // Client contains shared configuration and HTTP plumbing for the SDK.
+// Once configured, a Client is safe for concurrent use by multiple goroutines.
 type Client struct {
-	// BaseURL is the API origin (for example: https://warlot-api.onrender.com).
+	// BaseURL is the API origin (defaults to https://api.warlot.stevenhert.xyz).
 	BaseURL string
 
-	// APIKey is sent in the x-api-key header for authenticated operations.
-	// It can be set after key issuance.
+	// APIKey is sent as a Bearer token in the Authorization header for authenticated operations.
+	// It can be set during construction or after key issuance.
 	APIKey string
 
-	// HolderID is sent in the x-holder-id header.
+	// HolderID is an optional default holder identifier for project provisioning operations.
 	HolderID string
 
-	// ProjectName is sent in the x-project-name header.
+	// ProjectName is an optional default project name for project provisioning operations.
 	ProjectName string
 
 	// HTTPClient is the underlying HTTP client. A tuned default is provided
@@ -52,7 +53,7 @@ type Client struct {
 // New constructs a Client with safe defaults. Options can override defaults.
 func New(opts ...Option) *Client {
 	c := &Client{
-		BaseURL: "https://warlot-api.onrender.com",
+		BaseURL: "https://api.warlot.stevenhert.xyz",
 		HTTPClient: &http.Client{
 			Timeout: 30 * time.Second,
 			Transport: &http.Transport{

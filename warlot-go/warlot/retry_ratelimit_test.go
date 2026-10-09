@@ -13,7 +13,7 @@ func TestRetry_WithRetryAfter_ThenSuccess(t *testing.T) {
 	var attempts int32
 
 	srv, cl := newTestServer(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/warlotSql/projects/x/sql" {
+		if r.URL.Path == "/v1/projects/x/sql" {
 			if atomic.AddInt32(&attempts, 1) == 1 {
 				w.Header().Set("Retry-After", "1")
 				http.Error(w, `{"error":"too many"}`, http.StatusTooManyRequests)

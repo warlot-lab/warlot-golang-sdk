@@ -91,3 +91,32 @@ func TestSQL_DDL_DML_Select_QueryTyped_Idempotency(t *testing.T) {
 }
 
 func intPtr(i int) *int { return &i }
+
+func TestSQL_Select_NormalizationWithoutOK(t *testing.T) {
+	srv, cl := newTestServer(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		// Simulate warlot-publisher datahttp/mutations.go SELECT response:
+		// c.JSON(http.StatusOK, gin.H{"rows": result.Rows, "row_count": result.RowCount})
+		// omitting "ok" field entirely.
+		_, _ = w.Write([]byte(`{"rows":[{"id":1,"name":"Widget"}],"row_count":1}`))
+	})
+	defer srv.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	proj := cl.Project("proj-123")
+	res, err := proj.SQL(ctx, "SELECT id, name FROM items", nil)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !res.OK {
+		t.Fatalf("expected res.OK to be normalized to true, got false")
+	}
+	if res.RowCount == nil || *res.RowCount != 1 {
+		t.Fatalf("expected row_count to be 1, got %v", res.RowCount)
+	}
+	if len(res.Rows) != 1 {
+		t.Fatalf("expected 1 row, got %d", len(res.Rows))
+	}
+}

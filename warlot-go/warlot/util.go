@@ -13,13 +13,7 @@ import (
 func (c *Client) authHeaders() http.Header {
 	h := http.Header{}
 	if c.APIKey != "" {
-		h.Set("x-api-key", c.APIKey)
-	}
-	if c.HolderID != "" {
-		h.Set("x-holder-id", c.HolderID)
-	}
-	if c.ProjectName != "" {
-		h.Set("x-project-name", c.ProjectName)
+		h.Set("Authorization", "Bearer "+c.APIKey)
 	}
 	return h
 }
@@ -58,23 +52,45 @@ func statusOf(res *http.Response) int {
 }
 
 // parseAPIError decodes an error body and captures message/code/details when available.
+// It supports RFC 7807 problem details emitted by the gateway as well as flat envelopes.
 func parseAPIError(code int, b []byte) *APIError {
 	apiErr := &APIError{StatusCode: code, Body: string(b)}
-	var msg struct {
-		Message string      `json:"message"`
-		Error   string      `json:"error"`
-		Code    string      `json:"code"`
-		Details interface{} `json:"details"`
+	if len(b) == 0 {
+		return apiErr
 	}
-	if json.Unmarshal(b, &msg) == nil {
-		if msg.Message != "" {
-			apiErr.Message = msg.Message
-		} else if msg.Error != "" {
-			apiErr.Message = msg.Error
+
+	// 1. Try RFC 7807 problem structure: {"error": {"code": "...", "message": "...", "request_id": "..."}}
+	var rfcProblem struct {
+		Error struct {
+			Code      string `json:"code"`
+			Message   string `json:"message"`
+			RequestID string `json:"request_id"`
+		} `json:"error"`
+	}
+	if err := json.Unmarshal(b, &rfcProblem); err == nil && (rfcProblem.Error.Message != "" || rfcProblem.Error.Code != "") {
+		apiErr.Message = rfcProblem.Error.Message
+		apiErr.Code = rfcProblem.Error.Code
+		apiErr.RequestID = rfcProblem.Error.RequestID
+		return apiErr
+	}
+
+	// 2. Try flat structure: {"message": "...", "error": "...", "code": "...", "details": ...}
+	var flatMsg struct {
+		Message string `json:"message"`
+		Error   string `json:"error"`
+		Code    string `json:"code"`
+		Details any    `json:"details"`
+	}
+	if err := json.Unmarshal(b, &flatMsg); err == nil {
+		if flatMsg.Message != "" {
+			apiErr.Message = flatMsg.Message
+		} else if flatMsg.Error != "" {
+			apiErr.Message = flatMsg.Error
 		}
-		apiErr.Code = msg.Code
-		apiErr.Details = msg.Details
+		apiErr.Code = flatMsg.Code
+		apiErr.Details = flatMsg.Details
 	}
+
 	return apiErr
 }
 
@@ -102,9 +118,10 @@ func redactHeaders(h http.Header) http.Header {
 	cp := http.Header{}
 	for k, vs := range h {
 		for _, v := range vs {
-			if strings.EqualFold(k, "x-api-key") {
-				if len(v) > 8 {
-					cp.Add(k, v[:4]+"…"+v[len(v)-4:])
+			lowerK := strings.ToLower(k)
+			if lowerK == "authorization" || lowerK == "x-api-key" || lowerK == "cookie" {
+				if len(v) > 12 {
+					cp.Add(k, v[:6]+"…"+v[len(v)-4:])
 				} else {
 					cp.Add(k, "********")
 				}

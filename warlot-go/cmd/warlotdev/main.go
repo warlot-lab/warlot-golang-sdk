@@ -1,11 +1,13 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
 	"github.com/steven3002/warlot-golang-sdk/warlot-go/internal/devcli"
 	"github.com/steven3002/warlot-golang-sdk/warlot-go/internal/devcli/commands"
+	"github.com/steven3002/warlot-golang-sdk/warlot-go/internal/devcli/ui"
 )
 
 // Entry point for the official CLI: warlotdev.
@@ -51,6 +53,14 @@ func main() {
 		if err := commands.RunCommit(args); err != nil {
 			fail(err)
 		}
+	case "ready":
+		if err := commands.RunReady(args); err != nil {
+			fail(err)
+		}
+	case "indexer":
+		if err := commands.RunIndexer(args); err != nil {
+			fail(err)
+		}
 
 	default:
 		fmt.Fprintf(os.Stderr, "unknown command: %s\n\n", cmd)
@@ -60,6 +70,15 @@ func main() {
 }
 
 func fail(err error) {
-	fmt.Fprintf(os.Stderr, "error: %v\n", err)
+	env := ui.DetectEnv("auto")
+	painter := ui.NewPainter(env.Color)
+
+	var uErr *devcli.UsageError
+	if errors.As(err, &uErr) {
+		fmt.Fprint(os.Stderr, painter.FormatError(uErr.Err, uErr.Hint))
+		os.Exit(2)
+	}
+
+	fmt.Fprint(os.Stderr, painter.FormatError(err, ""))
 	os.Exit(1)
 }

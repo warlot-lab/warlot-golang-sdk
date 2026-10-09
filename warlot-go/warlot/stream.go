@@ -21,7 +21,7 @@ type RowScanner struct {
 // Next decodes the next row into dst (map or struct pointer). Returns false
 // on end of stream or on error. After false, Err should be checked.
 func (s *RowScanner) Next(dst any) bool {
-	if s.done {
+	if s == nil || s.done {
 		return false
 	}
 	// Seek to "rows": [
@@ -67,10 +67,18 @@ func (s *RowScanner) Next(dst any) bool {
 }
 
 // Err returns the last error encountered by the scanner, if any.
-func (s *RowScanner) Err() error { return s.lastErr }
+func (s *RowScanner) Err() error {
+	if s == nil {
+		return nil
+	}
+	return s.lastErr
+}
 
 // Close closes the underlying response body if still open.
 func (s *RowScanner) Close() error {
+	if s == nil {
+		return nil
+	}
 	if s.closer != nil {
 		err := s.closer.Close()
 		s.closer = nil
@@ -82,7 +90,7 @@ func (s *RowScanner) Close() error {
 // ExecSQLStream executes a SELECT and returns a RowScanner to iterate rows.
 // The caller must Close the scanner when finished.
 func (c *Client) ExecSQLStream(ctx context.Context, projectID string, req SQLRequest, opts ...CallOption) (*RowScanner, error) {
-	path := fmt.Sprintf("/warlotSql/projects/%s/sql", url.PathEscape(projectID))
+	path := fmt.Sprintf("/v1/projects/%s/sql", url.PathEscape(projectID))
 	h := c.authHeaders()
 	mergeHeaders(h, buildHeaders(nil, opts...))
 	res, err := c.doRequest(ctx, http.MethodPost, path, h, req)

@@ -1,8 +1,11 @@
 package devcli
 
 import (
+	"encoding/json"
 	"flag"
+	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -41,17 +44,23 @@ type GlobalFlags struct {
 	BackoffInit time.Duration
 	BackoffMax  time.Duration
 	Verbose     bool
+	JSON        bool
 }
 
 // ParseGlobalFlagsArgs binds global flags to the provided FlagSet and parses args.
 func ParseGlobalFlagsArgs(fs *flag.FlagSet, args []string) GlobalFlags {
 	var g GlobalFlags
 
-	// Defaults sourced from environment variables.
-	defBase := getenvDefault(EnvBaseURL, "https://warlot-api.onrender.com")
-	defKey := getenvDefault(EnvAPIKey, "")
-	defHolder := getenvDefault(EnvHolderID, "")
-	defPname := getenvDefault(EnvProjectName, "")
+	fileCfg := loadConfigFile()
+
+	// Defaults sourced from environment variables, config file, then fallback.
+	defBase := getenvDefault(EnvBaseURL, fileCfg.BaseURL)
+	if defBase == "" {
+		defBase = "https://api.warlot.stevenhert.xyz"
+	}
+	defKey := getenvDefault(EnvAPIKey, fileCfg.APIKey)
+	defHolder := getenvDefault(EnvHolderID, fileCfg.HolderID)
+	defPname := getenvDefault(EnvProjectName, fileCfg.ProjectName)
 
 	defTO := time.Duration(atoiDefault(os.Getenv(EnvTimeoutSec), DefaultTimeoutSec)) * time.Second
 	defRet := atoiDefault(os.Getenv(EnvRetries), DefaultRetries)
@@ -69,7 +78,8 @@ func ParseGlobalFlagsArgs(fs *flag.FlagSet, args []string) GlobalFlags {
 	backoffInit := fs.Int("backoff-init", int(defBInit/time.Millisecond), "Initial backoff ms (env "+EnvBackoffInit+")")
 	backoffMax := fs.Int("backoff-max", int(defBMax/time.Millisecond), "Max backoff ms (env "+EnvBackoffMax+")")
 
-	fs.BoolVar(&g.Verbose, "v", false, "Verbose request/response logs (API key redacted)")
+	fs.BoolVar(&g.Verbose, "v", false, "Verbose request/response logs (credentials redacted)")
+	fs.BoolVar(&g.JSON, "json", false, "Output raw machine-readable JSON")
 
 	// Parse now.
 	fs.Parse(args)
@@ -82,12 +92,10 @@ func ParseGlobalFlagsArgs(fs *flag.FlagSet, args []string) GlobalFlags {
 	return g
 }
 
-// MustNonEmpty enforces required flag presence for better operator feedback.
+// MustNonEmpty enforces required flag presence for better operator feedback without panicking.
 func MustNonEmpty(val, name string) {
 	if strings.TrimSpace(val) == "" {
-		// Returning an error is less ergonomic for small commands; exiting is acceptable for CLI.
-		// Errors are printed by the command runner for consistent formatting.
-		panic("missing required " + name)
+		ExitWithUsageError(fmt.Errorf("missing required %s", name), "provide "+name+" flag or set corresponding environment variable")
 	}
 }
 
@@ -120,4 +128,26 @@ func durMsDefault(msStr string, d time.Duration) time.Duration {
 		return d
 	}
 	return time.Duration(ms) * time.Millisecond
+}
+
+type configFile struct {
+	BaseURL     string `json:"base_url,omitempty"`
+	APIKey      string `json:"api_key,omitempty"`
+	HolderID    string `json:"holder_id,omitempty"`
+	ProjectName string `json:"project_name,omitempty"`
+}
+
+func loadConfigFile() configFile {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return configFile{}
+	}
+	p := filepath.Join(home, ".warlot", "config.json")
+	b, err := os.ReadFile(p)
+	if err != nil {
+		return configFile{}
+	}
+	var cfg configFile
+	_ = json.Unmarshal(b, &cfg)
+	return cfg
 }

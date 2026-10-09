@@ -13,7 +13,18 @@ import (
 // Retries are performed for 429 and 5xx responses using jittered backoff and
 // honoring Retry-After when present.
 func (c *Client) doJSON(ctx context.Context, method, path string, hdr http.Header, in, out any) error {
-	u := c.BaseURL + path
+	if c == nil {
+		return ErrNilClient
+	}
+	baseURL := c.BaseURL
+	if baseURL == "" {
+		baseURL = "https://api.warlot.stevenhert.xyz"
+	}
+	httpClient := c.HTTPClient
+	if httpClient == nil {
+		httpClient = http.DefaultClient
+	}
+	u := baseURL + path
 
 	makeBody := func() (io.ReadCloser, []byte, error) {
 		if in == nil {
@@ -57,7 +68,7 @@ func (c *Client) doJSON(ctx context.Context, method, path string, hdr http.Heade
 			h(req)
 		}
 
-		res, err := c.HTTPClient.Do(req)
+		res, err := httpClient.Do(req)
 		var body []byte
 		if err == nil {
 			defer res.Body.Close()
@@ -114,7 +125,18 @@ func (c *Client) doJSON(ctx context.Context, method, path string, hdr http.Heade
 // doRequest is similar to doJSON but returns a raw response for streaming.
 // The caller must close the response body.
 func (c *Client) doRequest(ctx context.Context, method, path string, hdr http.Header, in any) (*http.Response, error) {
-	u := c.BaseURL + path
+	if c == nil {
+		return nil, ErrNilClient
+	}
+	baseURL := c.BaseURL
+	if baseURL == "" {
+		baseURL = "https://api.warlot.stevenhert.xyz"
+	}
+	httpClient := c.HTTPClient
+	if httpClient == nil {
+		httpClient = http.DefaultClient
+	}
+	u := baseURL + path
 
 	makeBody := func() (io.ReadCloser, []byte, error) {
 		if in == nil {
@@ -158,7 +180,7 @@ func (c *Client) doRequest(ctx context.Context, method, path string, hdr http.He
 			h(req)
 		}
 
-		res, err := c.HTTPClient.Do(req)
+		res, err := httpClient.Do(req)
 		if err == nil && res.StatusCode/100 == 2 {
 			return res, nil
 		}

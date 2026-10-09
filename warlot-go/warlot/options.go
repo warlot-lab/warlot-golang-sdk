@@ -24,6 +24,20 @@ func WithBackoff(init, max time.Duration) Option {
 }
 func WithLogger(l Logger) Option { return func(c *Client) { c.Logger = l } }
 
+// WithBeforeHook appends an HTTP request hook executed before each request attempt.
+func WithBeforeHook(h func(*http.Request)) Option {
+	return func(c *Client) {
+		c.BeforeHooks = append(c.BeforeHooks, h)
+	}
+}
+
+// WithAfterHook appends an HTTP response hook executed after each request attempt.
+func WithAfterHook(h func(*http.Response, []byte, error)) Option {
+	return func(c *Client) {
+		c.AfterHooks = append(c.AfterHooks, h)
+	}
+}
+
 // CallOption customizes a single API call (for example, idempotency keys).
 type CallOption func(*callOptions)
 

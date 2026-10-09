@@ -2,26 +2,25 @@ package commands
 
 import (
 	"flag"
+	"fmt"
+	"os"
 
 	"github.com/steven3002/warlot-golang-sdk/warlot-go/internal/devcli"
+	"github.com/steven3002/warlot-golang-sdk/warlot-go/internal/devcli/ui"
 )
 
 // RunCommit commits project changes to chain-backed storage.
 func RunCommit(args []string) error {
 	fs := flag.NewFlagSet("commit", flag.ContinueOnError)
-	projectID := fs.String("project", "", "Project ID")
+	projectID := fs.String("project", "", "Project ID (required)")
 	g := devcli.ParseGlobalFlagsArgs(fs, args)
 
-	defer func() {
-		if r := recover(); r != nil {
-			devcli.Panicf("missing required flag: %v", r)
-		}
-	}()
-
-	devcli.MustNonEmpty(*projectID, "-project")
-	devcli.MustNonEmpty(g.HolderID, "-holder")
-	devcli.MustNonEmpty(g.ProjectName, "-pname")
-	devcli.MustNonEmpty(g.APIKey, "-apikey")
+	if err := devcli.RequireFlag(*projectID, "-project", "provide -project <id> to trigger commit"); err != nil {
+		return err
+	}
+	if err := devcli.RequireFlag(g.APIKey, "-apikey", "provide -apikey or set WARLOT_API_KEY"); err != nil {
+		return err
+	}
 
 	cl := devcli.NewClient(g)
 	ctx, cancel := devcli.Ctx(g)
@@ -31,6 +30,20 @@ func RunCommit(args []string) error {
 	if err != nil {
 		return err
 	}
-	devcli.PrintJSON(out)
+
+	if g.JSON {
+		devcli.PrintJSON(out)
+		return nil
+	}
+
+	env := ui.DetectEnv("auto")
+	painter := ui.NewPainter(env.Color)
+	glyphs := ui.DefaultGlyphs(env.Unicode)
+
+	fmt.Fprintf(os.Stdout, "%s Committed %d mutation(s) on-chain\n", painter.OK(fmt.Sprintf("[%s]", glyphs.Check())), out.CommittedOps)
+	if out.TxDigest != "" {
+		fmt.Fprintf(os.Stdout, "  %s  %s\n", painter.Muted("Tx Digest:    "), painter.Strong(out.TxDigest))
+	}
+	fmt.Fprintf(os.Stdout, "  %s  %d (Current Max: %d)\n", painter.Muted("Anchored Seq: "), out.LastUploadSeq, out.MaxSeq)
 	return nil
 }

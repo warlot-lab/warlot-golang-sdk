@@ -8,6 +8,9 @@ import (
 // ErrNilClient indicates that an operation was attempted on an uninitialized or nil Client.
 var ErrNilClient = errors.New("warlot: client is nil")
 
+// ErrClusterNotReady indicates that the cluster readiness probe reported degraded dependencies.
+var ErrClusterNotReady = errors.New("warlot: cluster not ready")
+
 // APIError represents a non-success HTTP response from the API.
 // It supports RFC 7807 problem details emitted by the gateway.
 type APIError struct {

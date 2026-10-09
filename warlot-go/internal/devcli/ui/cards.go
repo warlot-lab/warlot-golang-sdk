@@ -44,7 +44,7 @@ func RenderStatusCard(out io.Writer, p Painter, g Glyphs, st *warlot.ProjectStat
 
 	// Format freshness
 	freshnessStr := "unknown"
-	if dur, ok := st.Freshness(); ok {
+	if dur := st.Freshness(); dur > 0 && st.LastUploadAt != nil && !st.LastUploadAt.IsZero() {
 		freshnessStr = formatDuration(dur) + " ago"
 	}
 

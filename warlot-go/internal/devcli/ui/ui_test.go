@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/warlot-lab/warlot-golang-sdk/warlot-go/warlot"
 )
@@ -84,7 +85,7 @@ func TestRenderStatusCard(t *testing.T) {
 	g := DefaultGlyphs(false)
 	var buf bytes.Buffer
 
-	lastAt := "2026-10-09T12:00:00Z"
+	lastAt := time.Date(2026, 10, 9, 12, 0, 0, 0, time.UTC)
 	st := &warlot.ProjectStatus{
 		ProjectID:     "proj-xyz",
 		DBID:          "db-123",

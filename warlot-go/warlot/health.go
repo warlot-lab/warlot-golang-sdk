@@ -56,7 +56,7 @@ func (c *Client) CheckReadiness(ctx context.Context, opts ...CallOption) (*Readi
 	}
 
 	if res.StatusCode != http.StatusOK {
-		return &out, fmt.Errorf("cluster not ready (status=%d, readiness=%s)", res.StatusCode, out.Status)
+		return &out, fmt.Errorf("%w (status=%d, readiness=%s)", ErrClusterNotReady, res.StatusCode, out.Status)
 	}
 
 	return &out, nil

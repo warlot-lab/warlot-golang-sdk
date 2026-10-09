@@ -128,51 +128,37 @@ type PatchTableResponse struct {
 
 // ProjectStatus describes the replication, synchronization, and lifecycle state of a project.
 type ProjectStatus struct {
-	ProjectID                  string  `json:"project_id"`
-	DBID                       string  `json:"db_id"`
-	WriterPassID               string  `json:"writer_pass_id"`
-	LastUploadSeq              int64   `json:"last_upload_seq"`
-	LastUploadAt               *string `json:"last_upload_at,omitempty"`
-	MaxSeq                     int64   `json:"max_seq"`
-	Synced                     bool    `json:"synced"`
-	IsActive                   bool    `json:"is_active"`
-	Status                     string  `json:"status"`
-	TerminationState           string  `json:"termination_state,omitempty"`
-	TerminationFilesTotal      int     `json:"termination_files_total,omitempty"`
-	TerminationFilesCompleted  int     `json:"termination_files_completed,omitempty"`
-	TerminatedAt               *string `json:"terminated_at,omitempty"`
-	DeactivatedAt              *string `json:"deactivated_at,omitempty"`
+	ProjectID                 string     `json:"project_id"`
+	DBID                      string     `json:"db_id"`
+	WriterPassID              string     `json:"writer_pass_id"`
+	LastUploadSeq             int64      `json:"last_upload_seq"`
+	LastUploadAt              *time.Time `json:"last_upload_at,omitempty"`
+	MaxSeq                    int64      `json:"max_seq"`
+	Synced                    bool       `json:"synced"`
+	IsActive                  bool       `json:"is_active"`
+	Status                    string     `json:"status"`
+	TerminationState          string     `json:"termination_state,omitempty"`
+	TerminationFilesTotal     int        `json:"termination_files_total,omitempty"`
+	TerminationFilesCompleted int        `json:"termination_files_completed,omitempty"`
+	TerminatedAt              *string    `json:"terminated_at,omitempty"`
+	DeactivatedAt             *string    `json:"deactivated_at,omitempty"`
 }
 
 // ReplicationLag calculates the count of mutations recorded locally awaiting on-chain commit.
-func (s *ProjectStatus) ReplicationLag() int64 {
-	if s == nil {
-		return 0
-	}
+func (s ProjectStatus) ReplicationLag() int64 {
 	lag := s.MaxSeq - s.LastUploadSeq
-	if lag < 0 {
-		return 0
+	if lag > 0 {
+		return lag
 	}
-	return lag
+	return 0
 }
 
 // Freshness returns how long ago the project's state was last anchored on-chain.
-// Returns 0, false if LastUploadAt is nil or unparseable.
-func (s *ProjectStatus) Freshness() (time.Duration, bool) {
-	if s == nil || s.LastUploadAt == nil || *s.LastUploadAt == "" {
-		return 0, false
+func (s ProjectStatus) Freshness() time.Duration {
+	if s.LastUploadAt == nil {
+		return 0
 	}
-	t, err := time.Parse(time.RFC3339Nano, *s.LastUploadAt)
-	if err != nil {
-		t, err = time.Parse(time.RFC3339, *s.LastUploadAt)
-		if err != nil {
-			t, err = time.Parse("2006-01-02 15:04:05.999999-07:00", *s.LastUploadAt)
-			if err != nil {
-				return 0, false
-			}
-		}
-	}
-	return time.Since(t), true
+	return time.Since(*s.LastUploadAt)
 }
 
 // DependencyStatus describes the reachability of a cluster dependency.

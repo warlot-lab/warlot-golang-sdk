@@ -20,13 +20,13 @@ func RenderStatusCard(out io.Writer, p Painter, g Glyphs, st *warlot.ProjectStat
 	var statusBadge string
 	switch strings.ToLower(st.Status) {
 	case "active":
-		statusBadge = p.OK(fmt.Sprintf("[%s ACTIVE]", g.Check()))
+		statusBadge = p.OK(fmt.Sprintf("[%s] ACTIVE", g.Check()))
 	case "deactivated":
-		statusBadge = p.Warn(fmt.Sprintf("[%s DEACTIVATED]", g.Warn()))
+		statusBadge = p.Warn(fmt.Sprintf("[%s] DEACTIVATED", g.Warn()))
 	case "terminating":
-		statusBadge = p.Warn(fmt.Sprintf("[%s TERMINATING]", g.Warn()))
+		statusBadge = p.Warn(fmt.Sprintf("[%s] TERMINATING", g.Warn()))
 	case "terminated":
-		statusBadge = p.Err(fmt.Sprintf("[%s TERMINATED]", g.Cross()))
+		statusBadge = p.Err(fmt.Sprintf("[%s] TERMINATED", g.Cross()))
 	default:
 		statusBadge = p.Muted(fmt.Sprintf("[%s]", strings.ToUpper(st.Status)))
 	}
@@ -35,11 +35,11 @@ func RenderStatusCard(out io.Writer, p Painter, g Glyphs, st *warlot.ProjectStat
 	lag := st.ReplicationLag()
 	var syncBadge string
 	if st.Synced || lag == 0 {
-		syncBadge = p.OK(fmt.Sprintf("[%s IN SYNC]", g.Check()))
+		syncBadge = p.OK(fmt.Sprintf("[%s] IN SYNC", g.Check()))
 	} else if lag < 50 {
-		syncBadge = p.Warn(fmt.Sprintf("[%s LAGGING: %d ops]", g.Warn(), lag))
+		syncBadge = p.Warn(fmt.Sprintf("[%s] LAGGING: %d", g.Warn(), lag))
 	} else {
-		syncBadge = p.Err(fmt.Sprintf("[%s CRITICAL LAG: %d ops]", g.Cross(), lag))
+		syncBadge = p.Err(fmt.Sprintf("[%s] CRITICAL LAG: %d", g.Cross(), lag))
 	}
 
 	// Format freshness
@@ -115,9 +115,9 @@ func RenderReadinessCard(out io.Writer, p Painter, g Glyphs, r *warlot.Readiness
 
 	var statusBadge string
 	if r.IsReady() {
-		statusBadge = p.OK(fmt.Sprintf("[%s READY]", g.Check()))
+		statusBadge = p.OK(fmt.Sprintf("[%s] READY", g.Check()))
 	} else {
-		statusBadge = p.Err(fmt.Sprintf("[%s NOT READY]", g.Cross()))
+		statusBadge = p.Err(fmt.Sprintf("[%s] NOT READY", g.Cross()))
 	}
 
 	fmt.Fprintf(out, "%s %s\n\n", p.Heading("Cluster Health:"), statusBadge)

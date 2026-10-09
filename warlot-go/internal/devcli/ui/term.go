@@ -96,9 +96,6 @@ func (g Glyphs) Cross() string {
 }
 
 func (g Glyphs) Warn() string {
-	if g.Unicode {
-		return "▲"
-	}
 	return "!"
 }
 

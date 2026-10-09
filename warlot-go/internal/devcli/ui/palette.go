@@ -13,6 +13,23 @@ const (
 	RoleMuted
 	RoleStrong
 	RoleHeading
+
+	// Semantic role aliases matching Sennit heuristics.
+	rOK      = RoleOK
+	rWarn    = RoleWarn
+	rErr     = RoleErr
+	rHint    = RoleHint
+	rMuted   = RoleMuted
+	rStrong  = RoleStrong
+	rHeading = RoleHeading
+
+	ROK      = RoleOK
+	RWarn    = RoleWarn
+	RErr     = RoleErr
+	RHint    = RoleHint
+	RMuted   = RoleMuted
+	RStrong  = RoleStrong
+	RHeading = RoleHeading
 )
 
 // Painter translates semantic roles into 16 ANSI escape sequences.
@@ -65,6 +82,15 @@ func (p Painter) Hint(s string) string    { return p.Paint(RoleHint, s) }
 func (p Painter) Muted(s string) string   { return p.Paint(RoleMuted, s) }
 func (p Painter) Strong(s string) string  { return p.Paint(RoleStrong, s) }
 func (p Painter) Heading(s string) string { return p.Paint(RoleHeading, s) }
+
+// Role-prefixed helper aliases.
+func (p Painter) ROK(s string) string      { return p.OK(s) }
+func (p Painter) RWarn(s string) string    { return p.Warn(s) }
+func (p Painter) RErr(s string) string     { return p.Err(s) }
+func (p Painter) RHint(s string) string    { return p.Hint(s) }
+func (p Painter) RMuted(s string) string   { return p.Muted(s) }
+func (p Painter) RStrong(s string) string  { return p.Strong(s) }
+func (p Painter) RHeading(s string) string { return p.Heading(s) }
 
 // FormatError formats an error with an optional diagnostic hint according to Sennit CLI heuristics.
 func (p Painter) FormatError(err error, hint string) string {

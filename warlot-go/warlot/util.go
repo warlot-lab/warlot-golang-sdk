@@ -94,8 +94,47 @@ func parseAPIError(code int, b []byte) *APIError {
 	return apiErr
 }
 
+// ClassOfRoute maps an HTTP method and path to the rate limit class enforced by the publisher.
+// Chain covers routes that commit state or lease gas on-chain; Ordinary covers reads and SQL executions.
+func ClassOfRoute(method, path string) RateLimitClass {
+	if method == http.MethodPost {
+		if path == "/v1/blobs" || path == "/v1/projects" || strings.HasSuffix(path, "/commit") {
+			return RateLimitClassChain
+		}
+	}
+	return RateLimitClassOrdinary
+}
+
+// parseRateLimits extracts rate ceiling headers (X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset).
+func parseRateLimits(h http.Header) *RateLimit {
+	if h == nil {
+		return nil
+	}
+	limitStr := strings.TrimSpace(h.Get("X-RateLimit-Limit"))
+	if limitStr == "" {
+		return nil
+	}
+	limitVal, err := strconv.ParseUint(limitStr, 10, 64)
+	if err != nil {
+		return nil
+	}
+	remVal, _ := strconv.ParseUint(strings.TrimSpace(h.Get("X-RateLimit-Remaining")), 10, 64)
+	var resetTime time.Time
+	if resetStr := strings.TrimSpace(h.Get("X-RateLimit-Reset")); resetStr != "" {
+		if resetEpoch, err := strconv.ParseInt(resetStr, 10, 64); err == nil {
+			resetTime = time.Unix(resetEpoch, 0)
+		}
+	}
+	return &RateLimit{
+		Limit:     limitVal,
+		Remaining: remVal,
+		Reset:     resetTime,
+	}
+}
+
 // parseRetryAfter interprets Retry-After header values (seconds or HTTP-date).
 func parseRetryAfter(v string) time.Duration {
+	v = strings.TrimSpace(v)
 	if v == "" {
 		return 0
 	}
@@ -109,6 +148,7 @@ func parseRetryAfter(v string) time.Duration {
 	}
 	return 0
 }
+
 
 // redactHeaders masks sensitive header values for logging.
 func redactHeaders(h http.Header) http.Header {

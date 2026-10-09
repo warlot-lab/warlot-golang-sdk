@@ -14,6 +14,9 @@ import (
 func RunResolve(args []string) error {
 	fs := flag.NewFlagSet("resolve", flag.ContinueOnError)
 	g := devcli.ParseGlobalFlagsArgs(fs, args)
+	if g.Err != nil {
+		return g.Err
+	}
 
 	if err := devcli.RequireFlag(g.HolderID, "-holder", "provide -holder <id> or set WARLOT_HOLDER"); err != nil {
 		return err

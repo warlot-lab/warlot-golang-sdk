@@ -21,6 +21,9 @@ func RunSQL(args []string) error {
 	idempotency := fs.String("idempotency", "", "Idempotency key for writes")
 	stream := fs.Bool("stream", false, "Stream SELECT rows as JSON")
 	g := devcli.ParseGlobalFlagsArgs(fs, args)
+	if g.Err != nil {
+		return g.Err
+	}
 
 	if err := devcli.RequireFlag(*projectID, "-project", "provide -project <id> to execute SQL"); err != nil {
 		return err
@@ -28,7 +31,7 @@ func RunSQL(args []string) error {
 	if err := devcli.RequireFlag(*query, "-q", "provide -q \"<SQL statement>\""); err != nil {
 		return err
 	}
-	if err := devcli.RequireFlag(g.APIKey, "-apikey", "provide -apikey or set WARLOT_API_KEY"); err != nil {
+	if err := devcli.EnsureAPIKey(&g); err != nil {
 		return err
 	}
 

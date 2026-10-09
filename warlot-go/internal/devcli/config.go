@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"golang.org/x/term"
 )
 
 // Environment keys for defaults.
@@ -45,6 +47,7 @@ type GlobalFlags struct {
 	BackoffMax  time.Duration
 	Verbose     bool
 	JSON        bool
+	Err         error
 }
 
 // ParseGlobalFlagsArgs binds global flags to the provided FlagSet and parses args.
@@ -58,7 +61,6 @@ func ParseGlobalFlagsArgs(fs *flag.FlagSet, args []string) GlobalFlags {
 	if defBase == "" {
 		defBase = "https://api.warlot.stevenhert.xyz"
 	}
-	defKey := getenvDefault(EnvAPIKey, fileCfg.APIKey)
 	defHolder := getenvDefault(EnvHolderID, fileCfg.HolderID)
 	defPname := getenvDefault(EnvProjectName, fileCfg.ProjectName)
 
@@ -68,9 +70,11 @@ func ParseGlobalFlagsArgs(fs *flag.FlagSet, args []string) GlobalFlags {
 	defBMax := durMsDefault(os.Getenv(EnvBackoffMax), time.Duration(DefaultBackoffMax)*time.Millisecond)
 
 	fs.StringVar(&g.BaseURL, "base", defBase, "API base URL (env "+EnvBaseURL+")")
-	fs.StringVar(&g.APIKey, "apikey", defKey, "API key (env "+EnvAPIKey+")")
 	fs.StringVar(&g.HolderID, "holder", defHolder, "Holder ID (env "+EnvHolderID+")")
 	fs.StringVar(&g.ProjectName, "pname", defPname, "Project name (env "+EnvProjectName+")")
+
+	var apikeyFlag string
+	fs.StringVar(&apikeyFlag, "apikey", "", "API key (disabled as CLI argument for CWE-214 defense; set WARLOT_API_KEY)")
 
 	timeoutSec := fs.Int("timeout", int(defTO/time.Second), "Request timeout seconds (env "+EnvTimeoutSec+")")
 	fs.IntVar(&g.Retries, "retries", defRet, "Max retries on 429/5xx (env "+EnvRetries+")")
@@ -82,7 +86,20 @@ func ParseGlobalFlagsArgs(fs *flag.FlagSet, args []string) GlobalFlags {
 	fs.BoolVar(&g.JSON, "json", false, "Output raw machine-readable JSON")
 
 	// Parse now.
-	fs.Parse(args)
+	if err := fs.Parse(args); err != nil {
+		g.Err = err
+		return g
+	}
+
+	// Secret defense: prohibit passing API keys as CLI arguments (CWE-214).
+	if strings.TrimSpace(apikeyFlag) != "" {
+		g.Err = FlagErrorf(
+			"set WARLOT_API_KEY environment variable, configure ~/.warlot/config.json (mode 0600), or enter key interactively",
+			"passing plaintext API keys via -apikey CLI arguments is prohibited (CWE-214)",
+		)
+	} else {
+		g.APIKey = ResolveAPIKey()
+	}
 
 	// Finalize computed durations.
 	g.Timeout = time.Duration(*timeoutSec) * time.Second
@@ -90,6 +107,52 @@ func ParseGlobalFlagsArgs(fs *flag.FlagSet, args []string) GlobalFlags {
 	g.BackoffMax = time.Duration(*backoffMax) * time.Millisecond
 
 	return g
+}
+
+// EnsureAPIKey guarantees that an API key is present for authenticated commands.
+// If not resolved from WARLOT_API_KEY or ~/.warlot/config.json (mode 0600),
+// it prompts the operator masked on a TTY using golang.org/x/term.ReadPassword.
+func EnsureAPIKey(g *GlobalFlags) error {
+	if g == nil {
+		return FlagErrorf("client configuration is nil", "internal error")
+	}
+	if strings.TrimSpace(g.APIKey) != "" {
+		return nil
+	}
+	if term.IsTerminal(int(os.Stdin.Fd())) {
+		g.APIKey = promptMaskedAPIKey()
+		if strings.TrimSpace(g.APIKey) != "" {
+			return nil
+		}
+	}
+	return RequireAPIKey(g.APIKey)
+}
+
+// ResolveAPIKey resolves the API key prioritizing WARLOT_API_KEY, falling back to
+// ~/.warlot/config.json (mode 0600).
+func ResolveAPIKey() string {
+	// 1. Environment variable
+	if key := strings.TrimSpace(os.Getenv(EnvAPIKey)); key != "" {
+		return key
+	}
+
+	// 2. Fallback to ~/.warlot/config.json (mode 0600)
+	cfg := loadConfigFile()
+	if key := strings.TrimSpace(cfg.APIKey); key != "" {
+		return key
+	}
+
+	return ""
+}
+
+func promptMaskedAPIKey() string {
+	fmt.Fprint(os.Stderr, "Enter Warlot API Key: ")
+	b, err := term.ReadPassword(int(os.Stdin.Fd()))
+	fmt.Fprintln(os.Stderr)
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(b))
 }
 
 // MustNonEmpty enforces required flag presence for better operator feedback without panicking.
@@ -143,6 +206,19 @@ func loadConfigFile() configFile {
 		return configFile{}
 	}
 	p := filepath.Join(home, ".warlot", "config.json")
+	return loadConfigFileFromPath(p)
+}
+
+func loadConfigFileFromPath(p string) configFile {
+	fi, err := os.Stat(p)
+	if err != nil {
+		return configFile{}
+	}
+	// Verify that the file is a regular file and strictly protected (mode 0600).
+	// Permissions must not allow group or other access (CWE-214 secret defense).
+	if !fi.Mode().IsRegular() || fi.Mode().Perm()&0077 != 0 || fi.Mode().Perm() > 0600 {
+		return configFile{}
+	}
 	b, err := os.ReadFile(p)
 	if err != nil {
 		return configFile{}

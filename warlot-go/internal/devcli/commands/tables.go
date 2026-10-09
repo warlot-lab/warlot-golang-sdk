@@ -32,11 +32,14 @@ func runTablesList(args []string) error {
 	fs := flag.NewFlagSet("tables list", flag.ContinueOnError)
 	projectID := fs.String("project", "", "Project ID (required)")
 	g := devcli.ParseGlobalFlagsArgs(fs, args)
+	if g.Err != nil {
+		return g.Err
+	}
 
 	if err := devcli.RequireFlag(*projectID, "-project", "provide -project <id> to list tables"); err != nil {
 		return err
 	}
-	if err := devcli.RequireFlag(g.APIKey, "-apikey", "provide -apikey or set WARLOT_API_KEY"); err != nil {
+	if err := devcli.EnsureAPIKey(&g); err != nil {
 		return err
 	}
 
@@ -77,6 +80,9 @@ func runTablesBrowse(args []string) error {
 	limit := fs.Int("limit", 10, "Row limit")
 	offset := fs.Int("offset", 0, "Row offset")
 	g := devcli.ParseGlobalFlagsArgs(fs, args)
+	if g.Err != nil {
+		return g.Err
+	}
 
 	if err := devcli.RequireFlag(*projectID, "-project", "provide -project <id> to browse table"); err != nil {
 		return err
@@ -84,7 +90,7 @@ func runTablesBrowse(args []string) error {
 	if err := devcli.RequireFlag(*table, "-table", "provide -table <name> to browse table"); err != nil {
 		return err
 	}
-	if err := devcli.RequireFlag(g.APIKey, "-apikey", "provide -apikey or set WARLOT_API_KEY"); err != nil {
+	if err := devcli.EnsureAPIKey(&g); err != nil {
 		return err
 	}
 
@@ -120,6 +126,9 @@ func runTablesSchema(args []string) error {
 	projectID := fs.String("project", "", "Project ID (required)")
 	table := fs.String("table", "", "Table name (required)")
 	g := devcli.ParseGlobalFlagsArgs(fs, args)
+	if g.Err != nil {
+		return g.Err
+	}
 
 	if err := devcli.RequireFlag(*projectID, "-project", "provide -project <id> to view table schema"); err != nil {
 		return err
@@ -127,7 +136,7 @@ func runTablesSchema(args []string) error {
 	if err := devcli.RequireFlag(*table, "-table", "provide -table <name> to view table schema"); err != nil {
 		return err
 	}
-	if err := devcli.RequireFlag(g.APIKey, "-apikey", "provide -apikey or set WARLOT_API_KEY"); err != nil {
+	if err := devcli.EnsureAPIKey(&g); err != nil {
 		return err
 	}
 
@@ -155,11 +164,14 @@ func runTablesCount(args []string) error {
 	fs := flag.NewFlagSet("tables count", flag.ContinueOnError)
 	projectID := fs.String("project", "", "Project ID (required)")
 	g := devcli.ParseGlobalFlagsArgs(fs, args)
+	if g.Err != nil {
+		return g.Err
+	}
 
 	if err := devcli.RequireFlag(*projectID, "-project", "provide -project <id> to count tables"); err != nil {
 		return err
 	}
-	if err := devcli.RequireFlag(g.APIKey, "-apikey", "provide -apikey or set WARLOT_API_KEY"); err != nil {
+	if err := devcli.EnsureAPIKey(&g); err != nil {
 		return err
 	}
 

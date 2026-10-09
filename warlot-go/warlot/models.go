@@ -250,3 +250,19 @@ type TerminateProjectResponse struct {
 	Effect                     string `json:"effect"`
 	NotDeleted                 string `json:"not_deleted"`
 }
+
+// RateLimit captures the rate limit ceiling status parsed from response headers.
+type RateLimit struct {
+	Limit     uint64    `json:"limit"`
+	Remaining uint64    `json:"remaining"`
+	Reset     time.Time `json:"reset"`
+}
+
+// RateLimitClass identifies the rate limit route tier in Warlot.
+type RateLimitClass string
+
+const (
+	RateLimitClassOrdinary RateLimitClass = "ordinary"
+	RateLimitClassChain    RateLimitClass = "chain"
+)
+

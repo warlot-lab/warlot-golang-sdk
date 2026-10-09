@@ -22,14 +22,18 @@ USAGE:
 
 GLOBAL FLAGS (env defaults shown in []):
   -base          	API base URL [` + getenvDefault(EnvBaseURL, "https://api.warlot.stevenhert.xyz") + `]
-  -apikey        	API key [` + getenvDefault(EnvAPIKey, "") + `]
   -holder        	Holder ID [` + getenvDefault(EnvHolderID, "") + `]
   -pname         	Project name [` + getenvDefault(EnvProjectName, "") + `]
   -timeout       	Request timeout seconds [` + getenvDefault(EnvTimeoutSec, "90") + `]
   -retries       	Retries on 429/5xx [` + getenvDefault(EnvRetries, "5") + `]
   -backoff-init  	Initial backoff ms [` + getenvDefault(EnvBackoffInit, "1000") + `]
   -backoff-max   	Max backoff ms [` + getenvDefault(EnvBackoffMax, "8000") + `]
-  -v             	Verbose logs
+  -v             	Verbose logs (credentials redacted)
+  -json          	Output raw machine-readable JSON
+
+AUTHENTICATION:
+  Credentials are read from WARLOT_API_KEY environment variable, ~/.warlot/config.json (mode 0600),
+  or prompted interactively. Plaintext API keys via -apikey CLI arguments are prohibited (CWE-214).
 
 COMMANDS:
   resolve             	                          Resolve project by holder + name

@@ -9,6 +9,7 @@ package warlot
 import (
 	"net"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -48,7 +49,26 @@ type Client struct {
 	Logger      Logger
 	BeforeHooks []func(*http.Request)
 	AfterHooks  []func(*http.Response, []byte, error)
+
+	// Rate limiting state observed from response headers.
+	mu            sync.RWMutex
+	lastRateLimit *RateLimit
 }
+
+// LastRateLimit returns the most recently observed rate limit ceiling status, if available.
+func (c *Client) LastRateLimit() *RateLimit {
+	if c == nil {
+		return nil
+	}
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	if c.lastRateLimit == nil {
+		return nil
+	}
+	cp := *c.lastRateLimit
+	return &cp
+}
+
 
 // New constructs a Client with safe defaults. Options can override defaults.
 func New(opts ...Option) *Client {

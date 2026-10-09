@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"time"
 )
 
 // doJSON sends an HTTP request with a JSON encoded body and decodes a JSON response.
@@ -83,6 +84,15 @@ func (c *Client) doJSON(ctx context.Context, method, path string, hdr http.Heade
 			h(res, body, err)
 		}
 
+		if res != nil {
+			if rl := parseRateLimits(res.Header); rl != nil {
+				c.mu.Lock()
+				c.lastRateLimit = rl
+				c.mu.Unlock()
+			}
+		}
+
+		var retryWait time.Duration
 		if err != nil {
 			lastErr = fmt.Errorf("%s %s: %w", method, u, err)
 		} else if res.StatusCode/100 == 2 {
@@ -99,8 +109,8 @@ func (c *Client) doJSON(ctx context.Context, method, path string, hdr http.Heade
 			apiErr := parseAPIError(res.StatusCode, body)
 			if res.StatusCode == http.StatusTooManyRequests || res.StatusCode/100 == 5 {
 				lastErr = fmt.Errorf("%s %s: %w", method, u, apiErr)
-				if ra := parseRetryAfter(res.Header.Get("Retry-After")); ra > 0 && ra > backoff {
-					backoff = ra
+				if ra := parseRetryAfter(res.Header.Get("Retry-After")); ra > 0 {
+					retryWait = ra
 				}
 			} else {
 				return apiErr
@@ -112,10 +122,19 @@ func (c *Client) doJSON(ctx context.Context, method, path string, hdr http.Heade
 			return lastErr
 		}
 
-		// Backoff with jitter.
+		// Backoff or honor Retry-After duration.
 		if attempt < retries {
-			jitterSleep(ctx, backoff, maxBack)
-			backoff = nextBackoff(backoff, maxBack)
+			if retryWait > 0 {
+				timer := time.NewTimer(retryWait)
+				select {
+				case <-timer.C:
+				case <-ctx.Done():
+				}
+				timer.Stop()
+			} else {
+				jitterSleep(ctx, backoff, maxBack)
+				backoff = nextBackoff(backoff, maxBack)
+			}
 		}
 		_ = raw
 	}
@@ -181,10 +200,18 @@ func (c *Client) doRequest(ctx context.Context, method, path string, hdr http.He
 		}
 
 		res, err := httpClient.Do(req)
+		if res != nil {
+			if rl := parseRateLimits(res.Header); rl != nil {
+				c.mu.Lock()
+				c.lastRateLimit = rl
+				c.mu.Unlock()
+			}
+		}
 		if err == nil && res.StatusCode/100 == 2 {
 			return res, nil
 		}
 
+		var retryWait time.Duration
 		var body []byte
 		if err == nil {
 			body, _ = io.ReadAll(res.Body)
@@ -196,8 +223,8 @@ func (c *Client) doRequest(ctx context.Context, method, path string, hdr http.He
 			apiErr := parseAPIError(res.StatusCode, body)
 			if res.StatusCode == http.StatusTooManyRequests || res.StatusCode/100 == 5 {
 				lastErr = fmt.Errorf("%s %s: %w", method, u, apiErr)
-				if ra := parseRetryAfter(res.Header.Get("Retry-After")); ra > 0 && ra > backoff {
-					backoff = ra
+				if ra := parseRetryAfter(res.Header.Get("Retry-After")); ra > 0 {
+					retryWait = ra
 				}
 			} else {
 				return nil, apiErr
@@ -205,8 +232,17 @@ func (c *Client) doRequest(ctx context.Context, method, path string, hdr http.He
 		}
 
 		if attempt < retries {
-			jitterSleep(ctx, backoff, maxBack)
-			backoff = nextBackoff(backoff, maxBack)
+			if retryWait > 0 {
+				timer := time.NewTimer(retryWait)
+				select {
+				case <-timer.C:
+				case <-ctx.Done():
+				}
+				timer.Stop()
+			} else {
+				jitterSleep(ctx, backoff, maxBack)
+				backoff = nextBackoff(backoff, maxBack)
+			}
 		}
 	}
 	return nil, fmt.Errorf("warlot request failed after %d attempts: %w", retries+1, lastErr)

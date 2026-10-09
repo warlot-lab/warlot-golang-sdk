@@ -14,11 +14,14 @@ func RunCommit(args []string) error {
 	fs := flag.NewFlagSet("commit", flag.ContinueOnError)
 	projectID := fs.String("project", "", "Project ID (required)")
 	g := devcli.ParseGlobalFlagsArgs(fs, args)
+	if g.Err != nil {
+		return g.Err
+	}
 
 	if err := devcli.RequireFlag(*projectID, "-project", "provide -project <id> to trigger commit"); err != nil {
 		return err
 	}
-	if err := devcli.RequireFlag(g.APIKey, "-apikey", "provide -apikey or set WARLOT_API_KEY"); err != nil {
+	if err := devcli.EnsureAPIKey(&g); err != nil {
 		return err
 	}
 

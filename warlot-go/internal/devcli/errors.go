@@ -30,3 +30,15 @@ func RequireFlag(val, name, hint string) error {
 	}
 	return nil
 }
+
+// RequireAPIKey validates that an API key was resolved, returning a UsageError with defense guidance if missing.
+func RequireAPIKey(key string) error {
+	if strings.TrimSpace(key) == "" {
+		return FlagErrorf(
+			"set WARLOT_API_KEY environment variable, configure ~/.warlot/config.json (mode 0600), or enter key interactively",
+			"authentication credentials required",
+		)
+	}
+	return nil
+}
+

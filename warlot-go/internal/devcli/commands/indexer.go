@@ -25,6 +25,9 @@ func RunIndexer(args []string) error {
 	limit := fs.Int("limit", 10, "History item limit")
 	cursor := fs.String("cursor", "", "Pagination cursor")
 	g := devcli.ParseGlobalFlagsArgs(fs, subArgs)
+	if g.Err != nil {
+		return g.Err
+	}
 
 	idx := warlot.NewIndexerClient(*indexerURL, nil)
 	ctx, cancel := devcli.Ctx(g)

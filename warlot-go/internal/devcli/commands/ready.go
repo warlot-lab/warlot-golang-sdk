@@ -13,6 +13,9 @@ import (
 func RunReady(args []string) error {
 	fs := flag.NewFlagSet("ready", flag.ContinueOnError)
 	g := devcli.ParseGlobalFlagsArgs(fs, args)
+	if g.Err != nil {
+		return g.Err
+	}
 
 	cl := devcli.NewClient(g)
 	ctx, cancel := devcli.Ctx(g)

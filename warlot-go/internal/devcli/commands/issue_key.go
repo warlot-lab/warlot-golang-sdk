@@ -16,6 +16,9 @@ func RunIssueKey(args []string) error {
 	projectID := fs.String("project", "", "Project ID (required)")
 	userAddr := fs.String("user", "", "User address (owner) (required)")
 	g := devcli.ParseGlobalFlagsArgs(fs, args)
+	if g.Err != nil {
+		return g.Err
+	}
 
 	if err := devcli.RequireFlag(*projectID, "-project", "provide -project <id> to issue an API key"); err != nil {
 		return err

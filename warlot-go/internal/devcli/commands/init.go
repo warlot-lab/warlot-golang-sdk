@@ -17,6 +17,9 @@ func RunInit(args []string) error {
 	includePass := fs.Bool("include-pass", true, "Include pass artifacts")
 	deletable := fs.Bool("deletable", true, "Deletable project")
 	g := devcli.ParseGlobalFlagsArgs(fs, args)
+	if g.Err != nil {
+		return g.Err
+	}
 
 	if err := devcli.RequireFlag(g.HolderID, "-holder", "provide -holder <id> or set WARLOT_HOLDER"); err != nil {
 		return err
